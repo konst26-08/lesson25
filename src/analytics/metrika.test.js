@@ -67,12 +67,9 @@ describe("metrika", () => {
     trackBeginCheckout([{ id: 2, name: "Run Pro", price: 5000, quantity: 1 }]);
 
     expect(window.dataLayer[0].ecommerce.checkout.products).toHaveLength(1);
-    expect(window.ym).toHaveBeenCalledWith(
-      109394182,
-      "reachGoal",
-      METRIKA_GOALS.BEGIN_CHECKOUT,
-      { items_count: 1 }
-    );
+    expect(window.ym).toHaveBeenCalledWith(109394182, "reachGoal", METRIKA_GOALS.BEGIN_CHECKOUT, {
+      items_count: 1
+    });
   });
 
   it("pushes purchase to dataLayer with order number", () => {
