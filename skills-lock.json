@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "github-actions": {
+      "source": "claude-dev-suite/claude-dev-suite",
+      "sourceType": "github",
+      "computedHash": "c3dbdeb8f3dc62c4f320e3fbc34c1e8c0f240053ebfd6888a9f3749e54c412b7"
+    }
+  }
+}
