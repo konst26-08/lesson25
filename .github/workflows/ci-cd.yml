@@ -85,10 +85,11 @@ jobs:
           name: dist
           path: dist/
       - name: Deploy to Netlify
+        id: netlify-deploy
         uses: nwtgck/actions-netlify@v3.0
         with:
           publish-dir: ./dist
-          production-branch: main
+          production-branch: master
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: "Deploy ${{ github.sha }}"
           enable-pull-request-comment: false
@@ -101,7 +102,11 @@ jobs:
         env:
           NETLIFY_SITE_URL: ${{ secrets.NETLIFY_SITE_URL }}
         run: |
-          SITE_URL="${NETLIFY_SITE_URL:-https://regal-sunflower-1a7fff.netlify.app}"
+          SITE_URL="${{ steps.netlify-deploy.outputs.deploy_url }}"
+          if [ -z "$SITE_URL" ]; then
+            SITE_URL="${NETLIFY_SITE_URL:-https://regal-sunflower-1a7fff.netlify.app}"
+          fi
           echo "Checking $SITE_URL"
+          sleep 10
           curl -fsS "$SITE_URL/health.json" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); if(d.status!=='ok') process.exit(1)"
           curl -fsS -o /dev/null -w "Homepage HTTP %{http_code}\n" "$SITE_URL/"
