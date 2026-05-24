@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node ./scripts/write-health-json.mjs && vite build",
     "preview": "vite preview",
     "api:start": "node ./src/server/index.js",
     "test": "vitest run",

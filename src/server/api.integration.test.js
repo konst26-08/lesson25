@@ -38,11 +38,20 @@ async function adminToken(app) {
 }
 
 describe("GET /api/health", () => {
-  it("returns ok", async () => {
+  it("returns ok with dependency checks", async () => {
     const app = await appWithAdmin();
     const res = await request(app).get("/api/health");
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ status: "ok", database: "not_configured" });
+    expect(res.body.status).toBe("ok");
+    expect(res.body.check).toBe("health");
+    expect(res.body.checks.database).toBe("not_configured");
+  });
+
+  it("live returns ok without database", async () => {
+    const app = await appWithAdmin();
+    const res = await request(app).get("/api/health/live");
+    expect(res.status).toBe(200);
+    expect(res.body.check).toBe("live");
   });
 });
 

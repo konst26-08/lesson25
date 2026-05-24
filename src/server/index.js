@@ -33,7 +33,11 @@ async function startServer() {
     }),
     healthCheck: async () => {
       await pool.query("SELECT 1");
-    }
+    },
+    getExternalServices: () => ({
+      oauth:
+        env.yandexOAuth.clientId && env.yandexOAuth.clientSecret ? "configured" : "not_configured"
+    })
   });
 
   const server = app.listen(env.apiPort, () => {

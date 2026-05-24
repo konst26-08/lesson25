@@ -97,3 +97,11 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         timeout-minutes: 5
+      - name: Smoke test Netlify health endpoints
+        env:
+          NETLIFY_SITE_URL: ${{ secrets.NETLIFY_SITE_URL }}
+        run: |
+          SITE_URL="${NETLIFY_SITE_URL:-https://regal-sunflower-1a7fff.netlify.app}"
+          echo "Checking $SITE_URL"
+          curl -fsS "$SITE_URL/health.json" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); if(d.status!=='ok') process.exit(1)"
+          curl -fsS -o /dev/null -w "Homepage HTTP %{http_code}\n" "$SITE_URL/"

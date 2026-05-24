@@ -28,6 +28,7 @@ import {
   ValidationError
 } from "./errors/httpErrors.js";
 import { createOAuthServiceFromEnv } from "./auth/oauthService.js";
+import { createHealthHandlers } from "./health/healthHandlers.js";
 
 const defaultProducts = [
   { id: 1, name: "Racer Pro", price: 10990, sport: "running", brand: "StepUp", isActive: true },
@@ -107,6 +108,7 @@ export function createServer({
   jwtExpiresIn = "1d",
   corsOrigins = [],
   healthCheck = null,
+  getExternalServices = () => ({}),
   oauthService = null
 } = {}) {
   const app = express();
@@ -131,17 +133,10 @@ export function createServer({
   app.use(cors(createCorsOptions(corsOrigins)));
   app.use(express.json({ limit: "100kb" }));
 
-  app.get(
-    "/api/health",
-    asyncHandler(async (_request, response, _next) => {
-      if (healthCheck) {
-        await healthCheck();
-      }
-      response
-        .status(200)
-        .json({ status: "ok", database: healthCheck ? "connected" : "not_configured" });
-    })
-  );
+  const healthHandlers = createHealthHandlers({ healthCheck, getExternalServices });
+  app.get("/api/health/live", healthHandlers.live);
+  app.get("/api/health/ready", asyncHandler(healthHandlers.ready));
+  app.get("/api/health", asyncHandler(healthHandlers.health));
 
   app.get(
     "/api/sports",
