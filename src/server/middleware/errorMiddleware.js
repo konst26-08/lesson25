@@ -40,12 +40,12 @@ export function errorHandler(error, request, response, next) {
         method,
         path,
         code: error.code,
-        message: error.message
+        detail: error.message
       });
     } else if (error.statusCode === 422) {
       logger.info("Validation failed", { method, path, details: error.details });
     } else {
-      logger.info(`API ${error.statusCode}`, { method, path, message: error.message });
+      logger.info(`API ${error.statusCode}`, { method, path, detail: error.message });
     }
 
     const body = {

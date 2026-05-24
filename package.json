@@ -11,11 +11,22 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:structure": "node ./scripts/check-project-structure.mjs",
+    "test:oauth": "vitest run src/server/oauth.routes.test.js src/server/auth/oauth.test.js src/pages/OAuthCallbackPage.test.js",
+    "test:analytics": "vitest run src/analytics/metrika.test.js",
+    "test:payments": "vitest run src/server/payments/payments.integration.test.js",
+    "test:logging": "vitest run src/server/utils/logger.test.js src/server/logging/logScenarios.test.js",
+    "test:api": "vitest run src/server/api.integration.test.js src/server/createServer.test.js src/server/health/healthHandlers.test.js src/server/validation/ordersValidation.test.js",
+    "test:unit": "vitest run src/utils src/ai",
+    "test:integrations": "npm run test:oauth && npm run test:analytics && npm run test:payments && npm run test:logging && npm run test:api",
+    "verify:build": "node ./scripts/verify-build-assets.mjs",
+    "verify:smoke": "node ./scripts/verify-smoke-deploy.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "audit:prod": "npm audit --omit=dev"
+    "audit:prod": "npm audit --omit=dev",
+    "logs:demo": "node ./scripts/write-demo-logs.mjs",
+    "logs:analyze": "node ./scripts/analyze-logs.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

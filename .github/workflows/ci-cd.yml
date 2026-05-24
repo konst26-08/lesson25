@@ -34,8 +34,64 @@ jobs:
       - name: Dependency audit (production)
         run: npm run audit:prod
 
-  test:
-    name: Tests
+  test-oauth:
+    name: Tests — OAuth2
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: OAuth2 routes & service
+        run: npm run test:oauth
+
+  test-analytics:
+    name: Tests — Analytics
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Yandex Metrika
+        run: npm run test:analytics
+
+  test-payments:
+    name: Tests — Payments
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Payments MVP (no gateway)
+        run: npm run test:payments
+
+  test-logging:
+    name: Tests — Logging
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Structured logs
+        run: npm run test:logging
+
+  test-api:
+    name: Tests — API
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -44,12 +100,40 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - name: Install dependencies
-        run: npm ci
-      - name: Run tests
-        run: npm run test
-      - name: Structure test
+      - run: npm ci
+      - name: REST API integration
+        run: npm run test:api
+
+  test-unit:
+    name: Tests — Unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Utils & AI helpers
+        run: npm run test:unit
+      - name: Project structure
         run: npm run test:structure
+
+  test:
+    name: Tests — Full suite
+    needs: [test-oauth, test-analytics, test-payments, test-logging, test-api, test-unit]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Run all tests
+        run: npm test
 
   build:
     name: Build
@@ -62,10 +146,11 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
       - name: Build
         run: npm run build
+      - name: Verify build assets
+        run: npm run verify:build
       - uses: actions/upload-artifact@v4
         with:
           name: dist
@@ -84,6 +169,9 @@ jobs:
         with:
           name: dist
           path: dist/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: Deploy to Netlify
         id: netlify-deploy
         uses: nwtgck/actions-netlify@v3.0
@@ -98,7 +186,7 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         timeout-minutes: 5
-      - name: Smoke test Netlify health endpoints
+      - name: Smoke test production deploy
         env:
           NETLIFY_SITE_URL: ${{ secrets.NETLIFY_SITE_URL }}
         run: |
@@ -108,5 +196,4 @@ jobs:
           fi
           echo "Checking $SITE_URL"
           sleep 10
-          curl -fsS "$SITE_URL/health.json" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); if(d.status!=='ok') process.exit(1)"
-          curl -fsS -o /dev/null -w "Homepage HTTP %{http_code}\n" "$SITE_URL/"
+          node ./scripts/verify-smoke-deploy.mjs "$SITE_URL"

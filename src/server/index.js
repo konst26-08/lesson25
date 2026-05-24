@@ -4,6 +4,7 @@ import { createPool, closePool } from "./db/pool.js";
 import { createPostgresRepositories } from "./repositories/postgres/createRepositories.js";
 import { createOAuthServiceFromEnv } from "./auth/oauthService.js";
 import { InternalError } from "./errors/httpErrors.js";
+import { logger } from "./utils/logger.js";
 
 async function startServer() {
   validateEnv();
@@ -13,7 +14,7 @@ async function startServer() {
   try {
     await pool.query("SELECT 1");
   } catch (error) {
-    console.error("PostgreSQL connection failed:", error.message);
+    logger.error("PostgreSQL connection failed", error);
     process.exit(1);
   }
 
@@ -41,10 +42,15 @@ async function startServer() {
   });
 
   const server = app.listen(env.apiPort, () => {
-    console.log(`REST API started on http://localhost:${env.apiPort} (PostgreSQL)`);
+    logger.info("REST API started", {
+      url: `http://localhost:${env.apiPort}`,
+      database: "postgresql",
+      logFile: process.env.LOG_FILE?.trim() || null
+    });
   });
 
   const shutdown = async () => {
+    logger.info("Shutting down API");
     server.close();
     await closePool();
     process.exit(0);
@@ -55,6 +61,6 @@ async function startServer() {
 }
 
 startServer().catch((error) => {
-  console.error(error instanceof InternalError ? error.message : error);
+  logger.error("Failed to start API", error instanceof InternalError ? error : error);
   process.exit(1);
 });
